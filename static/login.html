@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>登录 - 校园二手交易平台</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- 导航栏 -->
+    <nav class="navbar">
+        <div class="navbar-container">
+            <a href="/" class="navbar-brand">
+                <span>🎓</span>
+                <span>CampusTrade</span>
+            </a>
+            
+            <div class="navbar-nav" id="auth-nav">
+                <a href="/login.html" class="nav-link active">登录</a>
+                <a href="/register.html" class="btn btn-primary btn-sm">注册</a>
+            </div>
+        </div>
+    </nav>
+    
+    <!-- 登录表单 -->
+    <div class="auth-container">
+        <div class="auth-card">
+            <div class="auth-header">
+                <h1 class="auth-title">欢迎回来</h1>
+                <p class="auth-subtitle">登录您的账户，继续交易</p>
+            </div>
+            
+            <form id="login-form">
+                <div class="form-group">
+                    <label class="form-label" for="username">用户名</label>
+                    <input 
+                        type="text" 
+                        id="username" 
+                        class="form-input" 
+                        placeholder="请输入用户名"
+                        required
+                        minlength="3"
+                        maxlength="50"
+                    >
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="password">密码</label>
+                    <input 
+                        type="password" 
+                        id="password" 
+                        class="form-input" 
+                        placeholder="请输入密码"
+                        required
+                        minlength="6"
+                    >
+                </div>
+                
+                <button type="submit" class="btn btn-primary btn-lg" style="width: 100%;" id="submit-btn">
+                    登录
+                </button>
+            </form>
+            
+            <div class="auth-footer">
+                还没有账户？<a href="/register.html">立即注册</a>
+            </div>
+            
+            <div style="margin-top: 20px; text-align: center;">
+                <a href="/" style="color: var(--text-secondary);">返回首页</a>
+            </div>
+        </div>
+    </div>
+    
+    <script src="/static/js/api.js"></script>
+    <script src="/static/js/auth.js"></script>
+    <script>
+        // 检查是否已登录
+        if (API.isLoggedIn()) {
+            const redirectUrl = localStorage.getItem('redirectUrl') || '/';
+            localStorage.removeItem('redirectUrl');
+            window.location.href = redirectUrl;
+        }
+        
+        // 表单提交
+        document.getElementById('login-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value;
+            const submitBtn = document.getElementById('submit-btn');
+            
+            if (!username || !password) {
+                Utils.showToast('请填写完整信息', 'error');
+                return;
+            }
+            
+            submitBtn.disabled = true;
+            submitBtn.textContent = '登录中...';
+            
+            try {
+                const data = await API.login(username, password);
+                
+                API.setToken(data.access_token);
+                
+                Utils.showToast('登录成功！');
+                
+                // 获取用户信息
+                const user = await API.getCurrentUser();
+                localStorage.setItem('user', JSON.stringify(user));
+                
+                // 跳转到首页或之前页面
+                setTimeout(() => {
+                    const redirectUrl = localStorage.getItem('redirectUrl') || '/';
+                    localStorage.removeItem('redirectUrl');
+                    window.location.href = redirectUrl;
+                }, 1000);
+                
+            } catch (e) {
+                console.error('登录失败:', e);
+                Utils.showToast(e.message, 'error');
+                submitBtn.disabled = false;
+                submitBtn.textContent = '登录';
+            }
+        });
+    </script>
+</body>
+</html>

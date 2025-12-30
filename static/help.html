@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>帮助中心 - 校园二手交易平台</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- 导航栏 -->
+    <nav class="navbar">
+        <div class="navbar-container">
+            <a href="/" class="navbar-brand">
+                <span>🎓</span>
+                <span>CampusTrade</span>
+            </a>
+            
+            <div class="navbar-nav" id="auth-nav">
+                <!-- 动态生成 -->
+            </div>
+        </div>
+    </nav>
+    
+    <!-- 帮助内容 -->
+    <main class="container" style="padding: 40px 20px; max-width: 800px;">
+        <a href="/" class="btn btn-outline" style="display: inline-block; margin-bottom: 20px;">
+            ← 返回首页
+        </a>
+        
+        <div id="help-content">
+            <!-- 默认显示加载中 -->
+            <div style="background: var(--surface); border-radius: 12px; padding: 40px; box-shadow: var(--shadow); text-align: center;">
+                <div class="spinner" style="margin: 0 auto;"></div>
+                <p style="margin-top: 15px; color: var(--text-secondary);">加载中...</p>
+            </div>
+        </div>
+    </main>
+    
+    <!-- 页脚 -->
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>关于我们</h3>
+                <p>校园二手交易平台致力于为同学们提供一个安全、便捷的二手物品交易环境。</p>
+            </div>
+            <div class="footer-section">
+                <h3>快速链接</h3>
+                <p><a href="/">首页</a></p>
+                <p><a href="/dashboard.html">个人中心</a></p>
+            </div>
+            <div class="footer-section">
+                <h3>帮助中心</h3>
+                <p><a href="/help.html?type=safety">交易安全指南</a></p>
+                <p><a href="/help.html?type=faq">常见问题</a></p>
+            </div>
+            <div class="footer-section">
+                <h3>联系我们</h3>
+                <p>客服邮箱：1391250757@qq.com</p>
+                <p>工作时间：周一至周五 9:00-18:00</p>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>© 2024 校园二手交易平台 | 仅供学习交流使用</p>
+        </div>
+    </footer>
+    
+    <script src="/static/js/api.js"></script>
+    <script src="/static/js/auth.js"></script>
+    <script>
+        // 根据类型显示不同内容
+        function renderHelpPage() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const pageType = urlParams.get('type') || 'safety';
+            const container = document.getElementById('help-content');
+            
+            let pageContent = '';
+            
+            if (pageType === 'safety') {
+                pageContent = `
+                    <div style="background: var(--surface); border-radius: 12px; padding: 30px; box-shadow: var(--shadow);">
+                        <div style="text-align: center; padding: 20px;">
+                            <div style="font-size: 60px; margin-bottom: 20px;">🛡️</div>
+                            <h2 style="font-size: 28px; font-weight: 700; margin-bottom: 30px; color: var(--text-primary);">
+                                交易安全指南
+                            </h2>
+                            <div style="background: #FEF3C7; border: 2px solid #FCD34D; border-radius: 12px; padding: 30px; margin-bottom: 30px;">
+                                <p style="font-size: 18px; line-height: 1.8; color: #92400E; font-weight: 500;">
+                                    这是一个二手交易的平台，在正式交易前一定要与卖家私下商量好。
+                                </p>
+                            </div>
+                            <div style="text-align: left; margin-top: 30px;">
+                                <h3 style="font-size: 20px; font-weight: 600; margin-bottom: 20px; color: var(--text-primary);">安全交易建议：</h3>
+                                <ul style="list-style: none; padding: 0;">
+                                    <li style="padding: 15px 0; border-bottom: 1px solid var(--border); display: flex; align-items: flex-start; gap: 12px;">
+                                        <span style="color: var(--success); font-size: 20px;">✓</span>
+                                        <span style="font-size: 16px;">尽量在校园内公共场所进行交易</span>
+                                    </li>
+                                    <li style="padding: 15px 0; border-bottom: 1px solid var(--border); display: flex; align-items: flex-start; gap: 12px;">
+                                        <span style="color: var(--success); font-size: 20px;">✓</span>
+                                        <span style="font-size: 16px;">交易前与卖家充分沟通，确认商品状态</span>
+                                    </li>
+                                    <li style="padding: 15px 0; border-bottom: 1px solid var(--border); display: flex; align-items: flex-start; gap: 12px;">
+                                        <span style="color: var(--success); font-size: 20px;">✓</span>
+                                        <span style="font-size: 16px;">当面验货后再付款</span>
+                                    </li>
+                                    <li style="padding: 15px 0; border-bottom: 1px solid var(--border); display: flex; align-items: flex-start; gap: 12px;">
+                                        <span style="color: var(--success); font-size: 20px;">✓</span>
+                                        <span style="font-size: 16px;">保留交易凭证，如聊天记录</span>
+                                    </li>
+                                    <li style="padding: 15px 0; display: flex; align-items: flex-start; gap: 12px;">
+                                        <span style="color: var(--success); font-size: 20px;">✓</span>
+                                        <span style="font-size: 16px;">如遇问题，及时联系平台客服</span>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            } else {
+                pageContent = `
+                    <div style="background: var(--surface); border-radius: 12px; padding: 30px; box-shadow: var(--shadow);">
+                        <div style="text-align: center; padding: 20px;">
+                            <div style="font-size: 60px; margin-bottom: 20px;">❓</div>
+                            <h2 style="font-size: 28px; font-weight: 700; margin-bottom: 30px; color: var(--text-primary);">
+                                常见问题
+                            </h2>
+                            <div style="background: #FEE2E2; border: 2px solid #FCA5A5; border-radius: 12px; padding: 30px; margin-bottom: 30px;">
+                                <p style="font-size: 18px; line-height: 1.8; color: #DC2626; font-weight: 500;">
+                                    请务必记住自己的用户名和密码，这非常重要！！！！
+                                </p>
+                            </div>
+                            <div style="text-align: left; margin-top: 30px;">
+                                <h3 style="font-size: 20px; font-weight: 600; margin-bottom: 20px; color: var(--text-primary);">其他常见问题：</h3>
+                                <ul style="list-style: none; padding: 0;">
+                                    <li style="padding: 20px 0; border-bottom: 1px solid var(--border);">
+                                        <div style="font-weight: 600; margin-bottom: 10px; font-size: 16px;">Q: 如何联系卖家？</div>
+                                        <div style="color: var(--text-secondary); font-size: 15px;">A: 在商品详情页点击"联系卖家"按钮，可以查看卖家联系方式。</div>
+                                    </li>
+                                    <li style="padding: 20px 0; border-bottom: 1px solid var(--border);">
+                                        <div style="font-weight: 600; margin-bottom: 10px; font-size: 16px;">Q: 商品售出后怎么办？</div>
+                                        <div style="color: var(--text-secondary); font-size: 15px;">A: 登录后进入个人中心，在"我的商品"中找到商品，点击"标记已售出"即可。</div>
+                                    </li>
+                                    <li style="padding: 20px 0; border-bottom: 1px solid var(--border);">
+                                        <div style="font-weight: 600; margin-bottom: 10px; font-size: 16px;">Q: 如何修改个人信息？</div>
+                                        <div style="color: var(--text-secondary); font-size: 15px;">A: 登录后进入个人中心，点击"个人资料"，可以修改用户名和手机号。</div>
+                                    </li>
+                                    <li style="padding: 20px 0;">
+                                        <div style="font-weight: 600; margin-bottom: 10px; font-size: 16px;">Q: 如何下架商品？</div>
+                                        <div style="color: var(--text-secondary); font-size: 15px;">A: 登录后进入个人中心，在"我的商品"中找到商品，点击"下架"按钮即可。</div>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            container.innerHTML = pageContent;
+            
+            // 根据类型设置标题
+            if (pageType === 'safety') {
+                document.title = '交易安全指南 - 校园二手交易平台';
+            } else {
+                document.title = '常见问题 - 校园二手交易平台';
+            }
+        }
+        
+        // 初始化导航栏（不使用await）
+        function initNavbar() {
+            if (typeof updateNavbarAuth === 'function') {
+                updateNavbarAuth();
+            }
+        }
+        
+        // 页面加载完成后执行
+        window.onload = function() {
+            initNavbar();
+            renderHelpPage();
+        };
+    </script>
+</body>
+</html>

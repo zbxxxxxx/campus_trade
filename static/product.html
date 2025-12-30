@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>商品详情 - 校园二手交易平台</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- 导航栏 -->
+    <nav class="navbar">
+        <div class="navbar-container">
+            <a href="/" class="navbar-brand">
+                <span>🎓</span>
+                <span>CampusTrade</span>
+            </a>
+            
+            <div class="navbar-nav" id="auth-nav">
+                <!-- 动态生成 -->
+            </div>
+        </div>
+    </nav>
+    
+    <!-- 商品详情 -->
+    <main class="product-detail">
+        <div style="max-width: 1200px; margin: 0 auto; padding: 20px;">
+            <button onclick="history.back()" class="btn btn-outline" style="margin-bottom: 20px;">
+                ← 返回
+            </button>
+        </div>
+        <div class="product-container" id="product-container">
+            <div class="loading">
+                <div class="spinner"></div>
+            </div>
+        </div>
+    </main>
+    
+    <!-- 联系方式弹窗 -->
+    <div class="modal-overlay" id="contact-modal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 class="modal-title">联系卖家</h3>
+                <button class="modal-close" onclick="closeModal('contact-modal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div id="contact-modal-content">
+                    <!-- 动态生成 -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" onclick="closeModal('contact-modal')">关闭</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 发送消息弹窗 -->
+    <div class="modal-overlay" id="message-modal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 class="modal-title">发送消息</h3>
+                <button class="modal-close" onclick="closeModal('message-modal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label" for="message-content">消息内容</label>
+                    <textarea id="message-content" class="form-textarea" placeholder="请输入您想说的话..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" onclick="closeModal('message-modal')">取消</button>
+                <button class="btn btn-primary" id="send-msg-btn" onclick="sendMessage()">发送</button>
+            </div>
+        </div>
+    </div>
+    
+    <script src="/static/js/api.js"></script>
+    <script src="/static/js/auth.js"></script>
+    <script>
+        let currentItem = null;
+        let currentUser = null;
+        
+        // 获取商品ID
+        const itemId = Utils.getUrlParam('id');
+        
+        if (!itemId) {
+            window.location.href = '/';
+        }
+        
+        // 加载商品详情
+        async function loadProduct() {
+            const container = document.getElementById('product-container');
+            
+            try {
+                currentItem = await API.getItem(itemId);
+                currentUser = getCurrentUser();
+                
+                renderProduct(currentItem, container);
+                
+            } catch (e) {
+                console.error('加载商品失败:', e);
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">❌</div>
+                        <h3 class="empty-title">商品不存在</h3>
+                        <p class="empty-desc">${e.message}</p>
+                        <a href="/" class="btn btn-primary">返回首页</a>
+                    </div>
+                `;
+            }
+        }
+        
+        // 渲染商品详情
+        function renderProduct(item, container) {
+            const imageUrl = item.image_url || 'https://via.placeholder.com/600x400?text=暂无图片';
+            const isOwner = currentUser && currentUser.id === item.seller_id;
+            const isSold = item.status === 'sold';
+            
+            container.innerHTML = `
+                <div class="product-gallery">
+                    <img src="${imageUrl}" alt="${item.title}" class="product-image" onerror="this.src='https://via.placeholder.com/600x400?text=暂无图片'">
+                </div>
+                
+                <div class="product-info">
+                    <h1 class="product-title">${item.title}</h1>
+                    <div class="product-price-large">${Utils.formatPrice(item.price)}</div>
+                    
+                    <div class="product-meta-grid">
+                        <div class="product-meta-item">
+                            <div class="product-meta-label">分类</div>
+                            <div class="product-meta-value">${item.category}</div>
+                        </div>
+                        <div class="product-meta-item">
+                            <div class="product-meta-label">成色</div>
+                            <div class="product-meta-value">${item.condition}</div>
+                        </div>
+                        <div class="product-meta-item">
+                            <div class="product-meta-label">浏览量</div>
+                            <div class="product-meta-value">${item.view_count}</div>
+                        </div>
+                        <div class="product-meta-item">
+                            <div class="product-meta-label">发布时间</div>
+                            <div class="product-meta-value">${Utils.formatTime(item.created_at)}</div>
+                        </div>
+                    </div>
+                    
+                    <div class="seller-info">
+                        <div class="seller-avatar">${item.seller.username.charAt(0).toUpperCase()}</div>
+                        <div class="seller-details">
+                            <h4>${item.seller.username}</h4>
+                            <p>${item.seller.email}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="product-description">
+                        <h3>商品描述</h3>
+                        <p>${item.description}</p>
+                    </div>
+                    
+                    ${isSold ? `
+                        <div style="background: #FEF2F2; color: #DC2626; padding: 15px; border-radius: 8px; text-align: center; font-weight: 600;">
+                            该商品已售出
+                        </div>
+                    ` : `
+                        <div class="product-actions">
+                            ${!isOwner ? `
+                                <button class="btn btn-primary btn-lg" onclick="showContactInfo()">
+                                    联系卖家
+                                </button>
+                                <button class="btn btn-outline btn-lg" onclick="openMessageModal()">
+                                    发送消息
+                                </button>
+                            ` : `
+                                <button class="btn btn-outline btn-lg" onclick="window.location.href='/post-item.html?edit=${item.id}'">
+                                    编辑商品
+                                </button>
+                                <button class="btn btn-danger btn-lg" onclick="markAsSold()">
+                                    标记已售出
+                                </button>
+                            `}
+                        </div>
+                    `}
+                </div>
+            `;
+        }
+        
+        // 显示卖家联系方式
+        function showContactInfo() {
+            if (!API.isLoggedIn()) {
+                Utils.redirectToLogin();
+                return;
+            }
+            
+            const content = document.getElementById('contact-modal-content');
+            content.innerHTML = `
+                <div style="background: var(--background); border-radius: 12px; padding: 20px;">
+                    <h4 style="margin-bottom: 15px; color: var(--text-secondary);">卖家联系方式</h4>
+                    <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 15px;">
+                        <div style="width: 50px; height: 50px; border-radius: 50%; background: var(--primary); color: white; display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: 700;">
+                            ${currentItem.seller.username.charAt(0).toUpperCase()}
+                        </div>
+                        <div>
+                            <div style="font-weight: 600; font-size: 16px;">${currentItem.seller.username}</div>
+                            <div style="color: var(--text-secondary); font-size: 14px;">卖家</div>
+                        </div>
+                    </div>
+                    <div style="padding: 15px; background: #F0FDF4; border-radius: 8px; border: 1px solid #86EFAC;">
+                        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                            <span>📧</span>
+                            <span style="color: #166534;">${currentItem.seller.email}</span>
+                        </div>
+                        ${currentItem.seller.phone ? `
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <span>📱</span>
+                                <span style="color: #166534;">${currentItem.seller.phone}</span>
+                            </div>
+                        ` : ''}
+                    </div>
+                </div>
+                <p style="margin-top: 15px; color: var(--text-secondary); text-align: center; font-size: 14px;">
+                    您可以通过以上方式联系卖家，协商交易细节后线下完成交易<br>
+                    交易完成后，请提醒卖家标记商品为已售出
+                </p>
+            `;
+            
+            openModal('contact-modal');
+        }
+        
+        // 标记商品已售出
+        async function markAsSold() {
+            if (!Utils.showConfirm('确定要标记商品为已售出吗？交易完成后标记，商品将不再显示在商城中。')) {
+                return;
+            }
+            
+            try {
+                await API.updateItemStatus(currentItem.id, 'sold');
+                Utils.showToast('商品已标记为已售出！', 'success');
+                
+                setTimeout(() => {
+                    window.location.reload();
+                }, 1000);
+                
+            } catch (e) {
+                console.error('标记失败:', e);
+                Utils.showToast(e.message, 'error');
+            }
+        }
+        
+        // 打开消息弹窗
+        function openMessageModal() {
+            if (!API.isLoggedIn()) {
+                Utils.redirectToLogin();
+                return;
+            }
+            
+            document.getElementById('message-content').value = '';
+            openModal('message-modal');
+        }
+        
+        // 发送消息
+        async function sendMessage() {
+            const content = document.getElementById('message-content').value.trim();
+            const btn = document.getElementById('send-msg-btn');
+            
+            if (!content) {
+                Utils.showToast('请输入消息内容', 'error');
+                return;
+            }
+            
+            btn.disabled = true;
+            btn.textContent = '发送中...';
+            
+            try {
+                await API.sendMessage(currentItem.seller.id, content, currentItem.id);
+                
+                Utils.showToast('消息已发送！', 'success');
+                closeModal('message-modal');
+                
+            } catch (e) {
+                console.error('发送消息失败:', e);
+                Utils.showToast(e.message, 'error');
+                btn.disabled = false;
+                btn.textContent = '发送';
+            }
+        }
+        
+        // 打开弹窗
+        function openModal(id) {
+            document.getElementById(id).classList.add('active');
+        }
+        
+        // 关闭弹窗
+        function closeModal(id) {
+            document.getElementById(id).classList.remove('active');
+        }
+        
+        // 页面加载
+        document.addEventListener('DOMContentLoaded', async () => {
+            await updateNavbarAuth();
+            await loadProduct();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>注册 - 校园二手交易平台</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- 导航栏 -->
+    <nav class="navbar">
+        <div class="navbar-container">
+            <a href="/" class="navbar-brand">
+                <span>🎓</span>
+                <span>CampusTrade</span>
+            </a>
+            
+            <div class="navbar-nav" id="auth-nav">
+                <a href="/login.html" class="nav-link">登录</a>
+                <a href="/register.html" class="btn btn-primary btn-sm active">注册</a>
+            </div>
+        </div>
+    </nav>
+    
+    <!-- 注册表单 -->
+    <div class="auth-container">
+        <div class="auth-card">
+            <div class="auth-header">
+                <h1 class="auth-title">创建账户</h1>
+                <p class="auth-subtitle">加入我们，开始校园交易之旅</p>
+            </div>
+            
+            <form id="register-form">
+                <div class="form-group">
+                    <label class="form-label" for="username">用户名</label>
+                    <input 
+                        type="text" 
+                        id="username" 
+                        class="form-input" 
+                        placeholder="3-50个字符，支持字母、数字、下划线"
+                        required
+                        minlength="3"
+                        maxlength="50"
+                        pattern="[a-zA-Z0-9_]+"
+                    >
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="email">邮箱</label>
+                    <input 
+                        type="email" 
+                        id="email" 
+                        class="form-input" 
+                        placeholder="请输入有效邮箱"
+                        required
+                    >
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="phone">手机号（可选）</label>
+                    <input 
+                        type="tel" 
+                        id="phone" 
+                        class="form-input" 
+                        placeholder="11位手机号码"
+                        minlength="11"
+                        maxlength="11"
+                    >
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="password">密码</label>
+                    <input 
+                        type="password" 
+                        id="password" 
+                        class="form-input" 
+                        placeholder="至少6位密码"
+                        required
+                        minlength="6"
+                    >
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="confirm-password">确认密码</label>
+                    <input 
+                        type="password" 
+                        id="confirm-password" 
+                        class="form-input" 
+                        placeholder="请再次输入密码"
+                        required
+                        minlength="6"
+                    >
+                </div>
+                
+                <button type="submit" class="btn btn-primary btn-lg" style="width: 100%;" id="submit-btn">
+                    注册
+                </button>
+            </form>
+            
+            <div class="auth-footer">
+                已有账户？<a href="/login.html">立即登录</a>
+            </div>
+            
+            <div style="margin-top: 20px; text-align: center;">
+                <a href="/" style="color: var(--text-secondary);">返回首页</a>
+            </div>
+        </div>
+    </div>
+    
+    <script src="/static/js/api.js"></script>
+    <script src="/static/js/auth.js"></script>
+    <script>
+        // 检查是否已登录
+        if (API.isLoggedIn()) {
+            window.location.href = '/';
+        }
+        
+        // 表单提交
+        document.getElementById('register-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const username = document.getElementById('username').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const phone = document.getElementById('phone').value.trim();
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirm-password').value;
+            const submitBtn = document.getElementById('submit-btn');
+            
+            // 验证
+            if (!username || !email || !password) {
+                Utils.showToast('请填写必填项', 'error');
+                return;
+            }
+            
+            if (password !== confirmPassword) {
+                Utils.showToast('两次密码输入不一致', 'error');
+                return;
+            }
+            
+            if (phone && !/^1\d{10}$/.test(phone)) {
+                Utils.showToast('手机号格式不正确', 'error');
+                return;
+            }
+            
+            submitBtn.disabled = true;
+            submitBtn.textContent = '注册中...';
+            
+            try {
+                const data = await API.register(username, email, password, phone || undefined);
+                
+                Utils.showToast('注册成功！正在跳转登录...', 'success');
+                
+                // 跳转到登录页
+                setTimeout(() => {
+                    window.location.href = '/login.html';
+                }, 1500);
+                
+            } catch (e) {
+                console.error('注册失败:', e);
+                Utils.showToast(e.message, 'error');
+                submitBtn.disabled = false;
+                submitBtn.textContent = '注册';
+            }
+        });
+    </script>
+</body>
+</html>

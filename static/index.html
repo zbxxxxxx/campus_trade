@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>校园二手交易平台 - CampusTrade</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- 导航栏 -->
+    <nav class="navbar">
+        <div class="navbar-container">
+            <a href="/" class="navbar-brand">
+                <span>🎓</span>
+                <span>CampusTrade</span>
+            </a>
+            
+            <div class="navbar-search">
+                <input type="text" id="search-input" placeholder="搜索商品名称或描述...">
+                <button onclick="handleSearch()">搜索</button>
+            </div>
+            
+            <div class="navbar-nav" id="auth-nav">
+                <!-- 动态生成 -->
+            </div>
+        </div>
+    </nav>
+    
+    <!-- 分类导航 -->
+    <div class="categories">
+        <div class="categories-list" id="categories-container">
+            <!-- 动态生成 -->
+        </div>
+    </div>
+    
+    <!-- Hero区域 -->
+    <section class="hero">
+        <h1 class="hero-title">校园二手交易平台</h1>
+        <p class="hero-subtitle">
+            买卖闲置物品，结识校友朋友，让校园生活更经济环保
+        </p>
+        <div class="hero-actions">
+            <button class="hero-btn hero-btn-primary" onclick="window.location.href='/post-item.html'">
+                发布商品
+            </button>
+            <button class="hero-btn hero-btn-outline" onclick="scrollToItems()">
+                浏览商品
+            </button>
+        </div>
+    </section>
+    
+    <!-- 商品列表 -->
+    <main class="container">
+        <div style="padding: 40px 0 20px;">
+            <h2 style="font-size: 24px; font-weight: 700; margin-bottom: 10px;">
+                最新商品
+            </h2>
+            <p style="color: var(--text-secondary);">
+                发现校园里的优质好物
+            </p>
+        </div>
+        
+        <div class="items-grid" id="items-grid">
+            <div class="loading">
+                <div class="spinner"></div>
+            </div>
+        </div>
+        
+        <!-- 加载更多 -->
+        <div style="text-align: center; padding: 30px 0 60px;">
+            <button class="btn btn-outline" id="load-more-btn" onclick="loadMoreItems()" style="display: none;">
+                加载更多
+            </button>
+        </div>
+    </main>
+    
+    <!-- 页脚 -->
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>关于我们</h3>
+                <p>校园二手交易平台致力于为同学们提供一个安全、便捷的二手物品交易环境。</p>
+            </div>
+            <div class="footer-section">
+                <h3>快速链接</h3>
+                <p><a href="/">首页</a></p>
+                <p><a href="/dashboard.html">个人中心</a></p>
+            </div>
+            <div class="footer-section">
+                <h3>帮助中心</h3>
+                <p><a href="/help.html?type=safety">交易安全指南</a></p>
+                <p><a href="/help.html?type=faq">常见问题</a></p>
+            </div>
+            <div class="footer-section">
+                <h3>联系我们</h3>
+                <p>客服邮箱：1391250757@qq.com</p>
+                <p>工作时间：周一至周五 9:00-18:00</p>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>© 2024 校园二手交易平台 | 仅供学习交流使用</p>
+        </div>
+    </footer>
+    
+    <script src="/static/js/api.js"></script>
+    <script src="/static/js/auth.js"></script>
+    <script>
+        // 状态变量
+        let currentPage = 0;
+        let currentCategory = '';
+        let currentSearch = '';
+        let isLoading = false;
+        
+        // 滚动到商品列表
+        function scrollToItems() {
+            document.getElementById('items-grid').scrollIntoView({ behavior: 'smooth' });
+        }
+        
+        // 加载分类
+        async function loadCategories() {
+            try {
+                const categories = await API.getCategories();
+                renderCategories(categories, document.getElementById('categories-container'), (category) => {
+                    currentCategory = category;
+                    currentPage = 0;
+                    loadItems();
+                });
+            } catch (e) {
+                console.error('加载分类失败:', e);
+            }
+        }
+        
+        // 加载商品列表
+        async function loadItems(reset = false) {
+            if (isLoading) return;
+            
+            if (reset) {
+                currentPage = 0;
+                document.getElementById('items-grid').innerHTML = `
+                    <div class="loading">
+                        <div class="spinner"></div>
+                    </div>
+                `;
+            }
+            
+            isLoading = true;
+            
+            try {
+                const data = await API.getItems({
+                    skip: currentPage * 16,
+                    limit: 16,
+                    category: currentCategory,
+                    search: currentSearch
+                });
+                
+                const items = data.items;
+                
+                if (reset || currentPage === 0) {
+                    renderItemsGrid(items, document.getElementById('items-grid'));
+                } else {
+                    const grid = document.getElementById('items-grid');
+                    grid.innerHTML += items.map(item => renderItemCard(item)).join('');
+                }
+                
+                // 更新加载更多按钮
+                const loadMoreBtn = document.getElementById('load-more-btn');
+                if (items.length < 16) {
+                    loadMoreBtn.style.display = 'none';
+                } else {
+                    loadMoreBtn.style.display = 'inline-flex';
+                }
+                
+            } catch (e) {
+                console.error('加载商品失败:', e);
+                document.getElementById('items-grid').innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">❌</div>
+                        <h3 class="empty-title">加载失败</h3>
+                        <p class="empty-desc">${e.message}</p>
+                        <button class="btn btn-primary" onclick="loadItems(true)">重试</button>
+                    </div>
+                `;
+            } finally {
+                isLoading = false;
+            }
+        }
+        
+        // 加载更多商品
+        function loadMoreItems() {
+            currentPage++;
+            loadItems();
+        }
+        
+        // 搜索
+        function handleSearch() {
+            const searchInput = document.getElementById('search-input');
+            currentSearch = searchInput.value.trim();
+            loadItems(true);
+        }
+        
+        // 回车搜索
+        document.getElementById('search-input').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                handleSearch();
+            }
+        });
+        
+        // 页面加载
+        document.addEventListener('DOMContentLoaded', async () => {
+            await updateNavbarAuth();
+            await loadCategories();
+            await loadItems();
+        });
+    </script>
+</body>
+</html>
